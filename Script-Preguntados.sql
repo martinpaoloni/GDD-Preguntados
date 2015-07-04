@@ -281,7 +281,7 @@ as begin
 	(@IdPais, @IdPregunta)
 	end
 go
-	
+
 create procedure PARCIAL.cargar_logs
 @Jugador numeric (18,0),
 @Competicion numeric (18,0),
@@ -289,12 +289,15 @@ create procedure PARCIAL.cargar_logs
 @Ganador bit
 as 
 	declare @Pais numeric (18,0)
-	declare @Pregunta numeric (18,0)
+	declare @Pregunta numeric (18,0)		
 	declare @Respuesta numeric (18,0)
 	Set @Pais = (select pais from PARCIAL.Jugadores where Id = @Jugador)
-	Set @Pregunta = (select top 1 * from
-		((select idPregunta from PARCIAL.RelacionPaisPregunta where IdPais = @Pais) UNION (select Id from PARCIAL.Preguntas where Id IN (5,10,15,20,25)))as ID
-		ORDER BY NEWID())
+	
+	Set @Pregunta = (Select top 1 P.Id from
+PARCIAL.Preguntas P
+INNER JOIN PARCIAL.RelacionPaisPregunta R
+ON P.Id = R.IdPregunta and P.FechaInicio is not NUll and FechaFin is null
+Where R.IdPais = 1 or P.Id in (5,10,15,20,25) order by newid())
 	Set @Respuesta = (select top 1 * from (select Id from PARCIAL.Respuestas where Pregunta = @Pregunta and esCorrecta = @Ganador)as Id Order BY NEWID())
 	begin
 		insert into PARCIAL.Logs
@@ -304,21 +307,22 @@ as
 	end
 	
 GO
- 
+
  
 
   
  CREATE PROCEDURE PARCIAL.cargar_preguntas
 	@Detalle nvarchar(45),
 	@Categoria numeric (18,0),
-	@Nivel numeric(18,0)
+	@Nivel numeric(18,0),
+	@FechaInicio date
 		
 AS
 BEGIN
 	INSERT INTO PARCIAL.Preguntas
 		(Detalle,Categoria,Nivel,FechaInicio,FechaFin)
 	VALUES
-		(@Detalle, @Categoria, @Nivel, NULL, NULL)
+		(@Detalle, @Categoria, @Nivel, @FechaInicio, NULL)
 END
 GO
 
@@ -415,15 +419,7 @@ IF @IdJugador5 IS NOT Null
 	END
 
 GO
-/*
-CREATE TRIGGER actualizarPorcentajes
-ON PARCIAL.Logs
-AFTER INSERT
-AS
 
-
-
-GO*/
 
 
 --CARGA DE DATOS
@@ -463,36 +459,53 @@ GO*/
  
  --TABLA DE PREGUNTAS
  
-exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet1?',1,1
-exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet2?',1,2
-exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet3?',1,3
-exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet4?',1,4
-exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet5?',1,5
+exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet1?',1,1,'23-02-2014'
+exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet2?',1,2,'13-06-2014'
+exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet3?',1,3,'08-09-2014'
+exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet4?',1,4,'08-09-2014'
+exec PARCIAL.cargar_preguntas 'Marca del mejor Fernet5?',1,5,'30-05-2014'
 
-exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA1?',2,1
-exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA2?',2,2
-exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA3?',2,3
-exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA4?',2,4
-exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA5?',2,5
+exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA1?',2,1,'23-02-2014'
+exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA2?',2,2,null
+exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA3?',2,3,'08-09-2014'
+exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA4?',2,4,null
+exec PARCIAL.cargar_preguntas 'Cual es de las siguientes es ensambladora de NVIDIA5?',2,5,'30-05-2014'
  
-exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios1',3,1
-exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios2',3,2
-exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios3',3,3
-exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios4',3,4
-exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios5',3,5
+exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios1',3,1,'23-02-2014'
+exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios2',3,2,'13-06-2014'
+exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios3',3,3,'08-09-2014'
+exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios4',3,4,null
+exec PARCIAL.cargar_preguntas 'Nombre de la campaña contra los indios5',3,5,'30-05-2014'
 
-exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano1?',4,1
-exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano2?',4,2
-exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano3?',4,3
-exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano4?',4,4
-exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano5?',4,5
+exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano1?',4,1,'23-02-2014'
+exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano2?',4,2,'13-06-2014'
+exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano3?',4,3,null
+exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano4?',4,4,'08-09-2014'
+exec PARCIAL.cargar_preguntas 'Que tiene el David en la mano5?',4,5,'30-05-2014'
  
-exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina1?',5,1
-exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina2?',5,2
-exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina3?',5,3
-exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina4?',5,4
-exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina5?',5,5
+exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina1?',5,1,'23-02-2014'
+exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina2?',5,2,'13-06-2014'
+exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina3?',5,3,'08-09-2014'
+exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina4?',5,4,null
+exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina5?',5,5,'30-05-2014'
 
+go
+Update PARCIAL.Preguntas
+SET FechaFin = (convert(date,'31-05-2014',103))
+where Id = 25
+go
+
+go
+Update PARCIAL.Preguntas
+SET FechaFin = (convert(date,'23-03-2014',103))
+where Id = 6
+go
+
+go
+Update PARCIAL.Preguntas
+SET FechaFin = (convert(date,'15-06-2014',103))
+where Id = 16
+go
 
  
  --TABLA DE RESPUESTAS
@@ -689,7 +702,7 @@ exec PARCIAL.cargar_competiciones 2,3,4,5,6,3
 -- cargar logs
 --Competicion 1 Mariano Pablo
 exec PARCIAL.cargar_logs 1,1,'20-05-2015',1
-exec PARCIAL.cargar_logs 2,1,'10-05-2015',0
+exec PARCIAL.cargar_logs 2,1,'21-05-2015',0
 
 --Competicion 2 Mariano Roman Maggie
 exec PARCIAL.cargar_logs 1,2,'17-03-2015',0
@@ -697,16 +710,16 @@ exec PARCIAL.cargar_logs 4,2,'18-03-2015',0
 exec PARCIAL.cargar_logs 5,2,'19-03-2015',1
 
 --Competicion 3 Pablo Osvaldo Erwin
-exec PARCIAL.cargar_logs 2,3,'19-03-2015',0
-exec PARCIAL.cargar_logs 3,3,'19-03-2015',1
-exec PARCIAL.cargar_logs 6,3,'19-03-2015',0
+exec PARCIAL.cargar_logs 2,3,'19-04-2015',0
+exec PARCIAL.cargar_logs 3,3,'19-04-2015',1
+exec PARCIAL.cargar_logs 6,3,'18-04-2015',0
 
 --Competicion 4 Osvaldo Roman Maggie Erwin Diego
-exec PARCIAL.cargar_logs 3,4,'19-03-2015',0
-exec PARCIAL.cargar_logs 4,4,'19-03-2015',0
-exec PARCIAL.cargar_logs 5,4,'19-03-2015',0
-exec PARCIAL.cargar_logs 6,4,'19-03-2015',1
-exec PARCIAL.cargar_logs 7,4,'19-03-2015',0
+exec PARCIAL.cargar_logs 3,4,'02-01-2015',0
+exec PARCIAL.cargar_logs 4,4,'02-01-2015',0
+exec PARCIAL.cargar_logs 5,4,'02-01-2015',0
+exec PARCIAL.cargar_logs 6,4,'02-01-2015',1
+exec PARCIAL.cargar_logs 7,4,'02-01-2015',0
 
 --Competicion 5 Pablo Roman Maggie Erwin
 exec PARCIAL.cargar_logs 2,5,'19-03-2015',0
@@ -718,45 +731,45 @@ exec PARCIAL.cargar_logs 6,5,'19-03-2015',0
 exec PARCIAL.cargar_logs 5,6,'19-03-2015',1
 
 --Competicion 7
-exec PARCIAL.cargar_logs 1,7,'19-03-2015',0
-exec PARCIAL.cargar_logs 2,7,'19-03-2015',0
-exec PARCIAL.cargar_logs 5,7,'19-03-2015',0
-exec PARCIAL.cargar_logs 6,7,'19-03-2015',0
-exec PARCIAL.cargar_logs 7,7,'19-03-2015',1
+exec PARCIAL.cargar_logs 1,7,'03-05-2015',0
+exec PARCIAL.cargar_logs 2,7,'03-05-2015',0
+exec PARCIAL.cargar_logs 5,7,'02-05-2015',0
+exec PARCIAL.cargar_logs 6,7,'05-05-2015',0
+exec PARCIAL.cargar_logs 7,7,'03-05-2015',1
 
 --Competicion 8
-exec PARCIAL.cargar_logs 2,8,'19-03-2015',0
-exec PARCIAL.cargar_logs 3,8,'19-03-2015',1
-exec PARCIAL.cargar_logs 4,8,'19-03-2015',0
+exec PARCIAL.cargar_logs 2,8,'15-02-2015',0
+exec PARCIAL.cargar_logs 3,8,'14-02-2015',1
+exec PARCIAL.cargar_logs 4,8,'14-02-2015',0
 
 --Competicion 9
-exec PARCIAL.cargar_logs 3,9,'19-03-2015',1
-exec PARCIAL.cargar_logs 4,9,'19-03-2015',0
+exec PARCIAL.cargar_logs 3,9,'19-06-2015',1
+exec PARCIAL.cargar_logs 4,9,'21-06-2015',0
 
 --Competicion 10
-exec PARCIAL.cargar_logs 4,10,'19-03-2015',0
-exec PARCIAL.cargar_logs 5,10,'19-03-2015',1
+exec PARCIAL.cargar_logs 4,10,'19-01-2015',0
+exec PARCIAL.cargar_logs 5,10,'19-01-2015',1
 
 --Competicion 11
-exec PARCIAL.cargar_logs 5,11,'19-03-2015',0
-exec PARCIAL.cargar_logs 6,11,'19-03-2015',1
+exec PARCIAL.cargar_logs 5,11,'17-02-2015',0
+exec PARCIAL.cargar_logs 6,11,'17-02-2015',1
 
 --Competicion 12
-exec PARCIAL.cargar_logs 5,12,'19-03-2015',1
+exec PARCIAL.cargar_logs 5,12,'19-06-2015',1
 
 --Competicion 13
-exec PARCIAL.cargar_logs 1,13,'19-03-2015',0
-exec PARCIAL.cargar_logs 2,13,'19-03-2015',0
-exec PARCIAL.cargar_logs 3,13,'19-03-2015',1
-exec PARCIAL.cargar_logs 4,13,'19-03-2015',0
-exec PARCIAL.cargar_logs 6,13,'19-03-2015',0
+exec PARCIAL.cargar_logs 1,13,'19-06-2015',0
+exec PARCIAL.cargar_logs 2,13,'19-06-2015',0
+exec PARCIAL.cargar_logs 3,13,'19-06-2015',1
+exec PARCIAL.cargar_logs 4,13,'22-06-2015',0
+exec PARCIAL.cargar_logs 6,13,'19-06-2015',0
 
 --Competicion 14
-exec PARCIAL.cargar_logs 2,14,'19-03-2015',0
-exec PARCIAL.cargar_logs 3,14,'19-03-2015',1
-exec PARCIAL.cargar_logs 4,14,'19-03-2015',0
-exec PARCIAL.cargar_logs 5,14,'19-03-2015',0
-exec PARCIAL.cargar_logs 6,14,'19-03-2015',0
+exec PARCIAL.cargar_logs 2,14,'22-05-2015',0
+exec PARCIAL.cargar_logs 3,14,'17-05-2015',1
+exec PARCIAL.cargar_logs 4,14,'12-05-2015',0
+exec PARCIAL.cargar_logs 5,14,'19-05-2015',0
+exec PARCIAL.cargar_logs 6,14,'23-05-2015',0
 
 
  

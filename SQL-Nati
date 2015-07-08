@@ -1,0 +1,55 @@
+ /*Para las preguntas vigentes en el juego cuyo año de inicio es 2013 y no sean de ningún 
+ país en particular, realizar una consulta SQL que muestre las 10 que más se respondieron 
+ incorrectamente y las 10 que menos se respondieron incorrectamente durante el año 2014.
+ La información a mostrar es PREGUNTAS | CATEGORIA | NIVEL | INCORRECTAS | PAIS
+ Ningún campo del resultado puede ser un ID. No es necesario ningún orden en particular.
+ La cuarta columna debe contener el literal ´MAS´ o ´MENOS´. La quinta columna corresponde al
+ País de los jugadores que más usaron esa pregunta.
+ RESTRICCIONES: En todas las clausulas del FROM solo se pueden usar las tablas del DER
+ */
+ 
+ 
+ USE GESTION
+ GO
+ 
+ SELECT P.Detalle as Pregunta , C.Detalle as Categoria, 
+		N.Detalle as Nivel, 'Más' as Incorrectas,
+		(SELECT TOP 1 P.Detalle
+			FROM PARCIAL.Paises P, PARCIAL.Logs L, PARCIAL.Jugadores J
+			WHERE P.Id = J.Pais AND L.Jugador = J.Id
+			GROUP BY P.Detalle
+			ORDER BY SUM(J.Id))
+		AS Pais 
+		FROM PARCIAL.Preguntas P, PARCIAL.Respuestas R,
+		PARCIAL.Categoria C,PARCIAL.Niveles N,
+		PARCIAL.Logs L, PARCIAL.RelacionPaisPregunta RPP
+		WHERE YEAR(P.FechaInicio) = 2013 AND P.FechaFin IS NULL AND
+		P.Categoria = C.Id AND R.Pregunta = P.Id AND
+		P.Id IN (SELECT TOP 10 R.Pregunta 
+				FROM PARCIAL.Respuestas R, PARCIAL.Logs L
+				WHERE R.Id = L.Respuesta AND R.esCorrecta = 0
+				GROUP BY R.Pregunta
+				ORDER BY COUNT(L.Id))
+		GROUP BY L.FechaHora,P.Detalle,C.Detalle,N.Detalle
+		HAVING YEAR(L.FechaHora) = 2014		 
+UNION		
+SELECT P.Detalle as Pregunta , C.Detalle as Categoria, 
+		N.Detalle as Nivel, 'Menos' as Incorrectas,
+		(SELECT TOP 1 P.Detalle
+			FROM PARCIAL.Paises P, PARCIAL.Logs L, PARCIAL.Jugadores J
+			WHERE P.Id = J.Pais AND L.Jugador = J.Id
+			GROUP BY P.Detalle
+			ORDER BY SUM(J.Id))
+		AS Pais 
+		FROM PARCIAL.Preguntas P, PARCIAL.Respuestas R,
+		PARCIAL.Categoria C,PARCIAL.Niveles N,
+		PARCIAL.Logs L, PARCIAL.RelacionPaisPregunta RPP
+		WHERE YEAR(P.FechaInicio) = 2013 AND  P.FechaFin IS NULL AND
+		P.Categoria = C.Id AND R.Pregunta = P.Id AND
+		P.Id IN (SELECT TOP 10 R.Pregunta 
+				FROM PARCIAL.Respuestas R, PARCIAL.Logs L
+				WHERE R.Id = L.Respuesta AND R.esCorrecta = 1
+				GROUP BY R.Pregunta
+				ORDER BY COUNT(L.Id) DESC)
+		GROUP BY L.FechaHora,P.Detalle,C.Detalle,N.Detalle
+		HAVING YEAR(L.FechaHora) = 2014

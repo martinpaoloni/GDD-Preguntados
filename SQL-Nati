@@ -12,6 +12,10 @@
  USE GESTION
  GO
  
+ -- Actualizo fecha de datos para que la query devuelva algo
+ update PARCIAL.Preguntas set FechaInicio = DATEFROMPARTS(2013, month(FechaInicio), day(FechaInicio));
+ update PARCIAL.Logs set FechaHora = DATEFROMPARTS(2014, month(FechaHora), day(FechaHora));
+
  SELECT P.Detalle as Pregunta , C.Detalle as Categoria, 
 		N.Detalle as Nivel, 'Más' as Incorrectas,
 		(SELECT TOP 1 P.Detalle

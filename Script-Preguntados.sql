@@ -18,9 +18,6 @@ END
 
 --borrado de tablas--
 
-IF OBJECT_ID('PARCIAL.CompeticionesPorJugador', 'U') IS NOT NULL
-DROP TABLE PARCIAL.CompeticionesPorJugador
-
 IF OBJECT_ID('PARCIAL.Logs', 'U') IS NOT NULL
 DROP TABLE PARCIAL.Logs
 
@@ -81,9 +78,6 @@ DROP PROCEDURE PARCIAL.cargar_relpaispreg
 IF OBJECT_ID('PARCIAL.cargar_logs', 'P') IS NOT NULL
 DROP PROCEDURE PARCIAL.cargar_logs
 
-
-IF OBJECT_ID('PARCIAL.cargar_competicionesPorJugador', 'P') IS NOT NULL
-DROP PROCEDURE PARCIAL.cargar_competicionesPorJugador
 
 
 --creacion de tablas

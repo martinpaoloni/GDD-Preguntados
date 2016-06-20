@@ -84,105 +84,105 @@ DROP PROCEDURE PARCIAL.cargar_logs
 
 create table PARCIAL.Paises
 (
-	Id numeric(18,0) IDENTITY (1,1),
+	IdPais numeric(18,0) IDENTITY (1,1),
 	Detalle nvarchar(45)
-	PRIMARY KEY (Id)
+	PRIMARY KEY (IdPais)
 	)
 
 
 CREATE TABLE PARCIAL.Jugadores
 (
-	Id numeric(18,0) IDENTITY(1,1),
+	IdJugador numeric(18,0) IDENTITY(1,1),
 	Nombre nvarchar(45) ,
 	Pais numeric(18,0),
 	Nick nvarchar(45),
-	TotalJugadas numeric(18,0),
-	TotalGanadas numeric (18,0),
+	TotalJugados numeric(18,0),
+	TotalGanados numeric (18,0),
 	FechaAlta date
-	PRIMARY KEY (Id),
-	FOREIGN KEY (Pais) REFERENCES PARCIAL.Paises(Id),
+	PRIMARY KEY (IdJugador),
+	FOREIGN KEY (Pais) REFERENCES PARCIAL.Paises(IdPais),
 	CONSTRAINT ct_Unique_Nombre Unique(Nombre)
 )
 
 CREATE TABLE PARCIAL.Categoria
 (
-	Id numeric (18,0) IDENTITY (1,1),
+	IdCategoria numeric (18,0) IDENTITY (1,1),
 	Detalle nvarchar(45)
-	PRIMARY KEY (Id),
+	PRIMARY KEY (IdCategoria),
 	)
 	
 create table PARCIAL.Niveles
 (
-	Id numeric (18,0) IDENTITY (1,1),
+	IdNivel numeric (18,0) IDENTITY (1,1),
 	Detalle nvarchar(45),
-	PRIMARY KEY (Id),
+	PRIMARY KEY (IdNivel),
 	)
 	
 create table PARCIAL.Preguntas
 (
-	Id numeric (18,0) IDENTITY (1,1),
-	Detalle nvarchar(45),
+	IdPregunta numeric (18,0) IDENTITY (1,1),
+	Detalle nvarchar(55),
 	Categoria numeric (18,0),
 	Nivel numeric (18,0),
 	FechaInicio date,
 	FechaFin date,
-	PRIMARY KEY (Id),
-	FOREIGN KEY (Nivel) REFERENCES PARCIAL.Niveles(Id),
-	FOREIGN KEY (Categoria) REFERENCES PARCIAL.Categoria(Id),
+	PRIMARY KEY (IdPregunta),
+	FOREIGN KEY (Nivel) REFERENCES PARCIAL.Niveles(IdNivel),
+	FOREIGN KEY (Categoria) REFERENCES PARCIAL.Categoria(IdCategoria),
 	)
 	
 create table PARCIAL.Respuestas
 (
-	Id numeric (18,0) IDENTITY (1,1),
+	IdRespuesta numeric (18,0) IDENTITY (1,1),
 	Pregunta numeric (18,0),
 	Letra nvarchar(1),
 	Detalle nvarchar(45),
 	esCorrecta nvarchar(1),
 	porcentaje numeric (2,0),
-	PRIMARY KEY (Id),
-	FOREIGN KEY (Pregunta) REFERENCES PARCIAL.Preguntas(Id),
+	PRIMARY KEY (IdRespuesta),
+	FOREIGN KEY (Pregunta) REFERENCES PARCIAL.Preguntas(IdPregunta),
 	)
 	
 create table PARCIAL.RelacionPaisPregunta
 (
 	IdPais numeric (18,0),
 	IdPregunta numeric (18,0),
-	FOREIGN KEY (IdPais) REFERENCES PARCIAL.Paises(Id),
-	FOREIGN KEY (IdPregunta) REFERENCES PARCIAL.Preguntas(Id),
+	FOREIGN KEY (IdPais) REFERENCES PARCIAL.Paises(IdPais),
+	FOREIGN KEY (IdPregunta) REFERENCES PARCIAL.Preguntas(IdPregunta),
 	)
 	
 create table PARCIAL.Competiciones
 (
-	Id numeric (18,0) IDENTITY (1,1),
+	IdCompeticion numeric (18,0) IDENTITY (1,1),
 	Jugador1 numeric(18,0),
 	Jugador2 numeric(18,0),
 	Jugador3 numeric(18,0),
 	Jugador4 numeric(18,0),
 	Jugador5 numeric(18,0),
 	Ganador numeric (18,0),
-	PRIMARY KEY (Id),
-	FOREIGN KEY (Jugador1) REFERENCES PARCIAL.Jugadores(Id),
-	FOREIGN KEY (Jugador2) REFERENCES PARCIAL.Jugadores(Id),
-	FOREIGN KEY (Jugador3) REFERENCES PARCIAL.Jugadores(Id),
-	FOREIGN KEY (Jugador4) REFERENCES PARCIAL.Jugadores(Id),
-	FOREIGN KEY (Jugador5) REFERENCES PARCIAL.Jugadores(Id),
+	PRIMARY KEY (IdCompeticion),
+	FOREIGN KEY (Jugador1) REFERENCES PARCIAL.Jugadores(IdJugador),
+	FOREIGN KEY (Jugador2) REFERENCES PARCIAL.Jugadores(IdJugador),
+	FOREIGN KEY (Jugador3) REFERENCES PARCIAL.Jugadores(IdJugador),
+	FOREIGN KEY (Jugador4) REFERENCES PARCIAL.Jugadores(IdJugador),
+	FOREIGN KEY (Jugador5) REFERENCES PARCIAL.Jugadores(IdJugador),
 	)
 	
 
 	
 create table PARCIAL.Logs
 (
-	Id numeric (18,0) IDENTITY (1,1),
+	IdLog numeric (18,0) IDENTITY (1,1),
 	Pregunta numeric (18,0),
 	Respuesta numeric (18,0),
 	Jugador numeric (18,0),
 	Competicion numeric (18,0),
 	FechaHora date
-	PRIMARY KEY (Id),
-	FOREIGN KEY (Pregunta) REFERENCES PARCIAL.Preguntas(Id),
-	FOREIGN KEY (Respuesta) REFERENCES PARCIAL.Respuestas(Id),
-	FOREIGN KEY (Jugador) REFERENCES PARCIAL.Jugadores(Id),
-	FOREIGN KEY (Competicion) REFERENCES PARCIAL.Competiciones(Id),
+	PRIMARY KEY (IdLog),
+	FOREIGN KEY (Pregunta) REFERENCES PARCIAL.Preguntas(IdPregunta),
+	FOREIGN KEY (Respuesta) REFERENCES PARCIAL.Respuestas(IdRespuesta),
+	FOREIGN KEY (Jugador) REFERENCES PARCIAL.Jugadores(IdJugador),
+	FOREIGN KEY (Competicion) REFERENCES PARCIAL.Competiciones(IdCompeticion),
 	)
 	
 --FIN DE CREACION DE TABLAS--
@@ -201,7 +201,7 @@ CREATE PROCEDURE PARCIAL.cargar_jugador
 	
 AS BEGIN
 	INSERT INTO PARCIAL.Jugadores
-		(Nombre,Pais, Nick,TotalGanadas,TotalJugadas,FechaAlta)
+		(Nombre,Pais, Nick,TotalGanados,TotalJugados,FechaAlta)
 	VALUES
 		(@Nombre, @Pais, @Nick,0,0, @FechaAlta)
 	END
@@ -285,14 +285,14 @@ as
 	declare @Pais numeric (18,0)
 	declare @Pregunta numeric (18,0)		
 	declare @Respuesta numeric (18,0)
-	Set @Pais = (select pais from PARCIAL.Jugadores where Id = @Jugador)
+	Set @Pais = (select pais from PARCIAL.Jugadores where IdJugador = @Jugador)
 	
-	Set @Pregunta = (Select top 1 P.Id from
+	Set @Pregunta = (Select top 1 P.IdPregunta from
 PARCIAL.Preguntas P
 INNER JOIN PARCIAL.RelacionPaisPregunta R
-ON P.Id = R.IdPregunta and P.FechaInicio is not NUll and FechaFin is null
-Where R.IdPais = 1 or P.Id in (5,10,15,20,25) order by newid())
-	Set @Respuesta = (select top 1 * from (select Id from PARCIAL.Respuestas where Pregunta = @Pregunta and esCorrecta = @Ganador)as Id Order BY NEWID())
+ON P.IdPregunta = R.IdPregunta and P.FechaInicio is not NUll and FechaFin is null
+Where R.IdPais = 1 or P.IdPregunta in (5,10,15,20,25) order by newid())
+	Set @Respuesta = (select top 1 * from (select IdRespuesta from PARCIAL.Respuestas where Pregunta = @Pregunta and esCorrecta = @Ganador)as Id Order BY NEWID())
 	begin
 		insert into PARCIAL.Logs
 		(Pregunta, Respuesta, Jugador, Competicion, FechaHora)
@@ -306,7 +306,7 @@ GO
 
   
  CREATE PROCEDURE PARCIAL.cargar_preguntas
-	@Detalle nvarchar(45),
+	@Detalle nvarchar(55),
 	@Categoria numeric (18,0),
 	@Nivel numeric(18,0),
 	@FechaInicio date
@@ -354,8 +354,8 @@ IF @CantidadJugadores > 1
 	BEGIN			
 		
 		UPDATE Parcial.Jugadores
-		SET TotalGanadas = TotalGanadas+1
-		WHERE Id = @IdGanador
+		SET TotalGanados = TotalGanados+1
+		WHERE IdJugador = @IdGanador
 		
 	END
 
@@ -383,33 +383,33 @@ Set  @IdJugador5 = (select Jugador5 from inserted)
 IF @IdJugador1 IS NOT Null
 	BEGIN
 		UPDATE Parcial.Jugadores
-		SET TotalJugadas = TotalJugadas+1
-		WHERE Id = @IdJugador1
+		SET TotalJugados = TotalJugados+1
+		WHERE IdJugador = @IdJugador1
 	END
 IF @IdJugador2 IS NOT Null
 	BEGIN
 		UPDATE Parcial.Jugadores
-		SET TotalJugadas = TotalJugadas+1
-		WHERE Id = @IdJugador2
+		SET TotalJugados = TotalJugados+1
+		WHERE IdJugador = @IdJugador2
 	END
 	
 IF @IdJugador3 IS NOT Null
 	BEGIN
 		UPDATE Parcial.Jugadores
-		SET TotalJugadas = TotalJugadas+1
-		WHERE Id = @IdJugador3
+		SET TotalJugados = TotalJugados+1
+		WHERE IdJugador = @IdJugador3
 	END
 IF @IdJugador4 IS NOT Null
 	BEGIN
 		UPDATE Parcial.Jugadores
-		SET TotalJugadas = TotalJugadas+1
-		WHERE Id = @IdJugador4
+		SET TotalJugados = TotalJugados+1
+		WHERE IdJugador = @IdJugador4
 	END
 IF @IdJugador5 IS NOT Null
 	BEGIN
 		UPDATE Parcial.Jugadores
-		SET TotalJugadas = TotalJugadas+1
-		WHERE Id = @IdJugador5
+		SET TotalJugados = TotalJugados+1
+		WHERE IdJugador = @IdJugador5
 	END
 
 GO
@@ -486,19 +486,19 @@ exec PARCIAL.cargar_preguntas 'Cual es la capital de Argentina5?',5,5,'30-05-201
 go
 Update PARCIAL.Preguntas
 SET FechaFin = (convert(date,'31-05-2014',103))
-where Id = 25
+where IdPregunta = 25
 go
 
 go
 Update PARCIAL.Preguntas
 SET FechaFin = (convert(date,'23-03-2014',103))
-where Id = 6
+where IdPregunta = 6
 go
 
 go
 Update PARCIAL.Preguntas
 SET FechaFin = (convert(date,'15-06-2014',103))
-where Id = 16
+where IdPregunta = 16
 go
 
  

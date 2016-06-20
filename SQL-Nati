@@ -16,20 +16,20 @@
 		N.Detalle as Nivel, 'Más' as Incorrectas,
 		(SELECT TOP 1 P.Detalle
 			FROM PARCIAL.Paises P, PARCIAL.Logs L, PARCIAL.Jugadores J
-			WHERE P.Id = J.Pais AND L.Jugador = J.Id
+			WHERE P.IdPais = J.Pais AND L.Jugador = J.IdJugador
 			GROUP BY P.Detalle
-			ORDER BY SUM(J.Id))
+			ORDER BY SUM(J.IdJugador))
 		AS Pais 
 		FROM PARCIAL.Preguntas P, PARCIAL.Respuestas R,
 		PARCIAL.Categoria C,PARCIAL.Niveles N,
 		PARCIAL.Logs L, PARCIAL.RelacionPaisPregunta RPP
 		WHERE YEAR(P.FechaInicio) = 2013 AND P.FechaFin IS NULL AND
-		P.Categoria = C.Id AND R.Pregunta = P.Id AND
-		P.Id IN (SELECT TOP 10 R.Pregunta 
+		P.Categoria = C.IdCategoria AND R.Pregunta = P.IdPregunta AND
+		P.IdPregunta IN (SELECT TOP 10 R.Pregunta 
 				FROM PARCIAL.Respuestas R, PARCIAL.Logs L
-				WHERE R.Id = L.Respuesta AND R.esCorrecta = 0
+				WHERE R.IdRespuesta = L.Respuesta AND R.esCorrecta = 0
 				GROUP BY R.Pregunta
-				ORDER BY COUNT(L.Id))
+				ORDER BY COUNT(L.IdLog))
 		GROUP BY L.FechaHora,P.Detalle,C.Detalle,N.Detalle
 		HAVING YEAR(L.FechaHora) = 2014		 
 UNION		
@@ -37,19 +37,19 @@ SELECT P.Detalle as Pregunta , C.Detalle as Categoria,
 		N.Detalle as Nivel, 'Menos' as Incorrectas,
 		(SELECT TOP 1 P.Detalle
 			FROM PARCIAL.Paises P, PARCIAL.Logs L, PARCIAL.Jugadores J
-			WHERE P.Id = J.Pais AND L.Jugador = J.Id
+			WHERE P.IdPais = J.Pais AND L.Jugador = J.IdJugador
 			GROUP BY P.Detalle
-			ORDER BY SUM(J.Id))
+			ORDER BY SUM(J.IdJugador))
 		AS Pais 
 		FROM PARCIAL.Preguntas P, PARCIAL.Respuestas R,
 		PARCIAL.Categoria C,PARCIAL.Niveles N,
 		PARCIAL.Logs L, PARCIAL.RelacionPaisPregunta RPP
 		WHERE YEAR(P.FechaInicio) = 2013 AND  P.FechaFin IS NULL AND
-		P.Categoria = C.Id AND R.Pregunta = P.Id AND
-		P.Id IN (SELECT TOP 10 R.Pregunta 
+		P.Categoria = C.IdCategoria AND R.Pregunta = P.IdPregunta AND
+		P.IdPregunta IN (SELECT TOP 10 R.Pregunta 
 				FROM PARCIAL.Respuestas R, PARCIAL.Logs L
-				WHERE R.Id = L.Respuesta AND R.esCorrecta = 1
+				WHERE R.IdRespuesta = L.Respuesta AND R.esCorrecta = 1
 				GROUP BY R.Pregunta
-				ORDER BY COUNT(L.Id) DESC)
+				ORDER BY COUNT(L.IdLog) DESC)
 		GROUP BY L.FechaHora,P.Detalle,C.Detalle,N.Detalle
 		HAVING YEAR(L.FechaHora) = 2014

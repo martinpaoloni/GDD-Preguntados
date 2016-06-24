@@ -31,7 +31,7 @@
 		P.Categoria = C.IdCategoria AND R.Pregunta = P.IdPregunta AND
 		P.IdPregunta IN (SELECT TOP 10 R.Pregunta 
 				FROM PARCIAL.Respuestas R, PARCIAL.Logs L
-				WHERE R.IdRespuesta = L.Respuesta AND R.esCorrecta = 0
+				WHERE R.IdRespuesta = L.Respuesta AND R.esCorrecta = 'N'
 				GROUP BY R.Pregunta
 				ORDER BY COUNT(L.IdLog))
 		GROUP BY L.FechaHora,P.Detalle,C.Detalle,N.Detalle
@@ -52,7 +52,7 @@ SELECT P.Detalle as Pregunta , C.Detalle as Categoria,
 		P.Categoria = C.IdCategoria AND R.Pregunta = P.IdPregunta AND
 		P.IdPregunta IN (SELECT TOP 10 R.Pregunta 
 				FROM PARCIAL.Respuestas R, PARCIAL.Logs L
-				WHERE R.IdRespuesta = L.Respuesta AND R.esCorrecta = 1
+				WHERE R.IdRespuesta = L.Respuesta AND R.esCorrecta = 'S'
 				GROUP BY R.Pregunta
 				ORDER BY COUNT(L.IdLog) DESC)
 		GROUP BY L.FechaHora,P.Detalle,C.Detalle,N.Detalle

@@ -74,11 +74,15 @@ DROP PROCEDURE PARCIAL.cargar_respuesta2
 IF OBJECT_ID('PARCIAL.cargar_relpaispreg', 'P') IS NOT NULL
 DROP PROCEDURE PARCIAL.cargar_relpaispreg
 
-
 IF OBJECT_ID('PARCIAL.cargar_logs', 'P') IS NOT NULL
 DROP PROCEDURE PARCIAL.cargar_logs
 
+IF OBJECT_ID('PARCIAL.recalcular_porcentajes', 'P') IS NOT NULL
+DROP PROCEDURE PARCIAL.recalcular_porcentajes
 
+IF OBJECT_ID ('PARCIAL.actualizarPorcentajes', 'TR') IS NOT NULL
+   DROP TRIGGER PARCIAL.actualizarPorcentajes;
+GO
 
 --creacion de tablas
 
@@ -137,11 +141,13 @@ create table PARCIAL.Respuestas
 	Pregunta numeric (18,0),
 	Letra nvarchar(1),
 	Detalle nvarchar(45),
-	esCorrecta char(1),
-	porcentaje numeric (2,0),
+	esCorrecta nvarchar(1),
+	porcentaje numeric (3,0),
 	PRIMARY KEY (IdRespuesta),
 	FOREIGN KEY (Pregunta) REFERENCES PARCIAL.Preguntas(IdPregunta),
-	CONSTRAINT chk_esCorrecta CHECK (esCorrecta IN ('S', 'N'))
+	CONSTRAINT chk_esCorrecta CHECK (esCorrecta IN ('S', 'N')),
+	CONSTRAINT chk_Letra CHECK (Letra IN ('A', 'B', 'C', 'D')),
+	CONSTRAINT chk_porcentaje CHECK (porcentaje between 0 and 100)
 	)
 	
 create table PARCIAL.RelacionPaisPregunta
@@ -160,13 +166,14 @@ create table PARCIAL.Competiciones
 	Jugador3 numeric(18,0),
 	Jugador4 numeric(18,0),
 	Jugador5 numeric(18,0),
-	Ganador numeric (18,0),
+	Ganador numeric (1,0),
 	PRIMARY KEY (IdCompeticion),
 	FOREIGN KEY (Jugador1) REFERENCES PARCIAL.Jugadores(IdJugador),
 	FOREIGN KEY (Jugador2) REFERENCES PARCIAL.Jugadores(IdJugador),
 	FOREIGN KEY (Jugador3) REFERENCES PARCIAL.Jugadores(IdJugador),
 	FOREIGN KEY (Jugador4) REFERENCES PARCIAL.Jugadores(IdJugador),
 	FOREIGN KEY (Jugador5) REFERENCES PARCIAL.Jugadores(IdJugador),
+	CONSTRAINT chk_Ganador CHECK (Ganador between 0 and 5)
 	)
 	
 
@@ -257,7 +264,7 @@ create procedure PARCIAL.cargar_respuestas
 @Pregunta numeric (18,0),
 @Letra nvarchar(1),
 @Detalle nvarchar (45),
-@esCorrecta char(1)
+@esCorrecta nvarchar(1)
 as begin 
 	insert into PARCIAL.Respuestas
 	(Pregunta, Letra, Detalle, esCorrecta , porcentaje)
@@ -281,7 +288,7 @@ create procedure PARCIAL.cargar_logs
 @Jugador numeric (18,0),
 @Competicion numeric (18,0),
 @FechaHota date,
-@Ganador char(1)
+@Ganador nvarchar(1)
 as 
 	declare @Pais numeric (18,0)
 	declare @Pregunta numeric (18,0)		
@@ -321,6 +328,29 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE PARCIAL.recalcular_porcentajes
+  @idPregunta numeric(18,0)
+AS
+BEGIN
+  declare @idRespuestaA numeric(18,0), @idRespuestaB numeric(18,0), @idRespuestaC numeric(18,0), @idRespuestaD numeric(18,0),
+    @countA int, @countB int, @countC int, @countD int, @countTotal int;
+  select @idRespuestaA = idRespuesta from PARCIAL.respuestas where pregunta = @idPregunta and letra = 'A';
+  select @idRespuestaB = idRespuesta from PARCIAL.respuestas where pregunta = @idPregunta and letra = 'B';
+  select @idRespuestaC = idRespuesta from PARCIAL.respuestas where pregunta = @idPregunta and letra = 'C';
+  select @idRespuestaD = idRespuesta from PARCIAL.respuestas where pregunta = @idPregunta and letra = 'D';
+  select @countA = count(*) from PARCIAL.logs where pregunta = @idPregunta and respuesta = @idRespuestaA;
+  select @countB = count(*) from PARCIAL.logs where pregunta = @idPregunta and respuesta = @idRespuestaB;
+  select @countC = count(*) from PARCIAL.logs where pregunta = @idPregunta and respuesta = @idRespuestaC;
+  select @countD = count(*) from PARCIAL.logs where pregunta = @idPregunta and respuesta = @idRespuestaD;
+  set @countTotal = @countA + @countB + @countC + @countD;
+  update PARCIAL.respuestas set porcentaje = round((cast(@countA as float)/ cast(@countTotal as float) * cast(100 as float)), 0) where idRespuesta = @idRespuestaA;
+  update PARCIAL.respuestas set porcentaje = round((cast(@countB as float) / cast(@countTotal as float) * cast(100 as float)), 0) where idRespuesta = @idRespuestaB;
+  update PARCIAL.respuestas set porcentaje = round((cast(@countC as float) / cast(@countTotal as float) * cast(100 as float)), 0) where idRespuesta = @idRespuestaC;
+  update PARCIAL.respuestas set porcentaje = round((cast(@countD as float) / cast(@countTotal as float) * cast(100 as float)), 0) where idRespuesta = @idRespuestaD;
+END
+go
+
+-- triggers
 
 
 CREATE TRIGGER actualizarPartidasGanadas
@@ -415,7 +445,17 @@ IF @IdJugador5 IS NOT Null
 
 GO
 
-
+CREATE TRIGGER actualizarPorcentajes
+  on PARCIAL.logs
+  AFTER INSERT
+AS
+BEGIN
+  declare @idPregunta numeric(18,0), @idRespuesta numeric(18,0);
+  -- busco todas respuestas para pregunta del inserted y recalculo porcentajes
+  select @idPregunta = pregunta from inserted;
+  exec PARCIAL.recalcular_porcentajes @idPregunta
+END
+go
 
 --CARGA DE DATOS
 
@@ -682,19 +722,19 @@ exec PARCIAL.cargar_relpaispreg  4,24
 -- Competiciones
 -- jugador 1 / jugador 2 / jugador 3 / jugador 4 / juador 5 / ganador
 exec PARCIAL.cargar_competiciones 1,2,Null,Null,Null,1	
-exec PARCIAL.cargar_competiciones 1,4,5,Null,Null,5		
-exec PARCIAL.cargar_competiciones 2,3,6,Null,Null,3		
-exec PARCIAL.cargar_competiciones 3,4,5,6,7,6			
-exec PARCIAL.cargar_competiciones 2,4,5,6,Null,5				
-exec PARCIAL.cargar_competiciones 5,Null,Null,Null,Null,5		
-exec PARCIAL.cargar_competiciones 1,2,5,6,7,7
-exec PARCIAL.cargar_competiciones 2,3,4,Null,Null,3			
-exec PARCIAL.cargar_competiciones 3,4,Null,Null,Null,3			
-exec PARCIAL.cargar_competiciones 4,5,Null,Null,Null,5		
-exec PARCIAL.cargar_competiciones 5,6,Null,Null,Null,6
-exec PARCIAL.cargar_competiciones 5,Null,Null,Null,Null,5		--
+exec PARCIAL.cargar_competiciones 1,4,5,Null,Null,3		
+exec PARCIAL.cargar_competiciones 2,3,6,Null,Null,2		
+exec PARCIAL.cargar_competiciones 3,4,5,6,7,4			
+exec PARCIAL.cargar_competiciones 2,4,5,6,Null,3				
+exec PARCIAL.cargar_competiciones 5,Null,Null,Null,Null,1		
+exec PARCIAL.cargar_competiciones 1,2,5,6,7,5
+exec PARCIAL.cargar_competiciones 2,3,4,Null,Null,2			
+exec PARCIAL.cargar_competiciones 3,4,Null,Null,Null,1			
+exec PARCIAL.cargar_competiciones 4,5,Null,Null,Null,2		
+exec PARCIAL.cargar_competiciones 5,6,Null,Null,Null,2
+exec PARCIAL.cargar_competiciones 5,Null,Null,Null,Null,1		--
 exec PARCIAL.cargar_competiciones 1,2,3,4,6,3	
-exec PARCIAL.cargar_competiciones 2,3,4,5,6,3
+exec PARCIAL.cargar_competiciones 2,3,4,5,6,2
 
 
 -- cargar logs
